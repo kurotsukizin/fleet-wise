@@ -48,21 +48,7 @@ data,veiculo_id,categoria,descricao,quantidade,valor_total,quilometragem
 
 ## 🏗️ Arquitetura inicial
 
-```text
-Entrada de dados
-        ↓
-Tratamento e padronização
-        ↓
-Análise dos custos
-        ↓
-Diagnóstico de ineficiências
-        ↓
-Benchmark e comparações
-        ↓
-Recomendações e plano de ação
-        ↓
-Dashboard e relatório
-```
+![Arquitetura do FleetWise](diagrams/arquitetura-geral.png)
 
 ## 📅 Próximas etapas
 
