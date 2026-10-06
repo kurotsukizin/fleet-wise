@@ -1,0 +1,13 @@
+data,veiculo_id,categoria,descricao,quantidade,valor_total,quilometragem
+2026-08-01,V001,Combustível,Diesel,180,1080.0,45200
+2026-08-03,V001,Pedágio,Rodovia Anhanguera,1,18.5,45410
+2026-08-05,V002,Manutenção,Troca de óleo,1,420.0,31800
+2026-08-08,V003,Multa,Excesso de velocidade,1,195.23,27650
+2026-08-10,V001,Combustível,Diesel,160,960.0,45620
+2026-08-12,V002,Pedágio,Rodovia Bandeirantes,2,37.0,32100
+2026-08-15,V003,Combustível,Gasolina,45,270.0,28100
+2026-08-18,V002,Manutenção,Troca de pneus,4,1600.0,32500
+2026-08-20,V001,Pedágio,Rodovia Anhanguera,3,55.5,46000
+2026-08-22,V003,Combustível,Gasolina,50,300.0,28550
+2026-08-25,V001,Impostos,IPVA,1,850.0,46000
+2026-08-28,V002,Combustível,Diesel,200,1200.0,33200

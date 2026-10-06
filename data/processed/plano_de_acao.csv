@@ -1,0 +1,6 @@
+prioridade,categoria,diagnostico,acao_recomendada,solucao_relacionada,economia_estimada
+Alta,Combustível,Combustível representa 54.54% dos custos.,"Analisar consumo, preços, rotas e comportamento de abastecimento.",Multiabastece,381.0
+Alta,Manutenção,Manutenção representa 28.91% dos custos.,Priorizar manutenção preventiva e acompanhar veículos parados.,Gestão de Manutenção,242.4
+Alta,Multa,Multas representam 2.79% dos custos.,Investigar recorrência por veículo e condutor.,Gestor de Multas,39.05
+Média,Impostos,Impostos representam 12.17% dos custos.,Criar calendário de vencimentos e acompanhar pagamentos.,Gestão financeira da frota,25.5
+Baixa,Pedágio,Pedágio representa 1.59% dos custos.,Analisar rotas e centralizar o controle das passagens.,Tag Sem Parar / Vale-Pedágio,8.88
