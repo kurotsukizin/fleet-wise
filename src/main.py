@@ -15,6 +15,12 @@ from .diagnostics import (
     detect_expensive_transactions,
     generate_recommendations,
 )
+from .benchmarks import (
+    calculate_benchmark_savings,
+    calculate_cost_per_km,
+    calculate_fleet_benchmark,
+    classify_vehicle_performance,
+)
 
 
 def main():
@@ -36,11 +42,17 @@ def main():
     cost_by_vehicle = calculate_cost_by_vehicle(data)
     category_percentage = calculate_category_percentage(data)
     largest_category = get_largest_cost_category(data)
+
     vehicle_diagnostics = calculate_vehicle_diagnostics(data)
     category_diagnostics = calculate_category_diagnostics(data)
     expensive_transactions = detect_expensive_transactions(data)
     savings_opportunities = calculate_savings_opportunities(data)
     recommendations = generate_recommendations(data)
+
+    cost_per_km = calculate_cost_per_km(data)
+    fleet_benchmark = calculate_fleet_benchmark(data)
+    performance = classify_vehicle_performance(data)
+    benchmark_savings = calculate_benchmark_savings(data)
 
     PROCESSED_DIR.mkdir(
         parents=True,
@@ -102,6 +114,19 @@ def main():
             f"R$ {recommendation['impacto_estimado']:.2f}"
         )
 
+    print("\nCusto por quilômetro:")
+    print(cost_per_km.to_string(index=False))
+
+    print(
+        f"\nBenchmark médio da frota: "
+        f"R$ {fleet_benchmark:.4f} por km"
+    )
+
+    print("\nClassificação de desempenho:")
+    print(performance.to_string(index=False))
+
+    print("\nEconomia potencial por benchmark:")
+    print(benchmark_savings.to_string(index=False))
 
 if __name__ == "__main__":
     main()
