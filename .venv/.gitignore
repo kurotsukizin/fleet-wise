@@ -7,3 +7,5 @@ reports/generated/
 
 data/processed/*
 !data/processed/.gitkeep
+
+.streamlit/
