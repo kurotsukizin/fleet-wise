@@ -8,6 +8,13 @@ from .metrics import (
     get_largest_cost_category,
 )
 from .validators import validate_data
+from .diagnostics import (
+    calculate_category_diagnostics,
+    calculate_savings_opportunities,
+    calculate_vehicle_diagnostics,
+    detect_expensive_transactions,
+    generate_recommendations,
+)
 
 
 def main():
@@ -29,6 +36,11 @@ def main():
     cost_by_vehicle = calculate_cost_by_vehicle(data)
     category_percentage = calculate_category_percentage(data)
     largest_category = get_largest_cost_category(data)
+    vehicle_diagnostics = calculate_vehicle_diagnostics(data)
+    category_diagnostics = calculate_category_diagnostics(data)
+    expensive_transactions = detect_expensive_transactions(data)
+    savings_opportunities = calculate_savings_opportunities(data)
+    recommendations = generate_recommendations(data)
 
     PROCESSED_DIR.mkdir(
         parents=True,
@@ -61,6 +73,34 @@ def main():
         f"\nArquivo tratado gerado em: "
         f"{OUTPUT_FILE}"
     )
+
+    print("\nDiagnóstico por veículo:")
+    print(vehicle_diagnostics.to_string(index=False))
+
+    print("\nDiagnóstico por categoria:")
+    print(category_diagnostics.to_string(index=False))
+
+    print("\nTransações potencialmente anômalas:")
+
+    if expensive_transactions.empty:
+        print("Nenhuma transação fora do padrão encontrada.")
+    else:
+        print(expensive_transactions.to_string(index=False))
+
+    print("\nOportunidades de economia:")
+    print(savings_opportunities.to_string(index=False))
+
+    print("\nRecomendações:")
+
+    for recommendation in recommendations:
+        print(
+            f"- [{recommendation['prioridade']}] "
+            f"{recommendation['tipo']} — "
+            f"{recommendation['alvo']}: "
+            f"{recommendation['recomendacao']} "
+            f"Economia estimada: "
+            f"R$ {recommendation['impacto_estimado']:.2f}"
+        )
 
 
 if __name__ == "__main__":
