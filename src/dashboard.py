@@ -42,14 +42,70 @@ st.set_page_config(
     layout="wide",
 )
 
+with st.expander("Formato esperado dos arquivos"):
+    st.markdown(
+        """
+        O arquivo deve conter as seguintes colunas:
+
+        - `data`
+        - `veiculo_id`
+        - `categoria`
+        - `descricao`
+        - `quantidade`
+        - `valor_total`
+        - `quilometragem`
+
+        Categorias aceitas:
+
+        - Combustível
+        - Manutenção
+        - Pedágio
+        - Multa
+        - Impostos
+        - Seguro
+        - Outros
+        """
+    )
+
 
 def load_uploaded_data(uploaded_file):
-    data = pd.read_csv(uploaded_file)
-    data = standardize_data(data)
+    file_name = uploaded_file.name.lower()
+
+    try:
+        if file_name.endswith(".csv"):
+            data = pd.read_csv(uploaded_file)
+
+        elif file_name.endswith(".xlsx"):
+            data = pd.read_excel(
+                uploaded_file,
+                engine="openpyxl"
+            )
+
+        else:
+            st.error(
+                "Formato não suportado. "
+                "Envie um arquivo CSV ou XLSX."
+            )
+            return None
+
+    except Exception as error:
+        st.error(
+            f"Não foi possível ler o arquivo: {error}"
+        )
+        return None
+
+    try:
+        data = standardize_data(data)
+    except Exception as error:
+        st.error(
+            f"Erro ao padronizar os dados: {error}"
+        )
+        return None
 
     errors = validate_data(data)
 
     if errors:
+        st.error("O arquivo possui problemas:")
         for error in errors:
             st.error(error)
 
@@ -306,8 +362,8 @@ def main():
     st.sidebar.header("Fonte de dados")
 
     uploaded_file = st.sidebar.file_uploader(
-        "Envie um arquivo CSV",
-        type=["csv"]
+        "Envie um arquivo CSV ou Excel",
+        type=["csv", "xlsx"]
     )
 
     if uploaded_file is None:
