@@ -50,13 +50,23 @@ data,veiculo_id,categoria,descricao,quantidade,valor_total,quilometragem
 
 ![Arquitetura do FleetWise](diagrams/arquitetura-geral.png)
 
-## 📅 Próximas etapas
+## 🖥️ Dashboard
 
-- Sprint 2: base de dados e importação de arquivos.
-- Sprint 3: diagnóstico e cálculo de economia potencial.
-- Sprint 4: IA e automação.
-- Sprint 5: interface e relatórios.
-- Sprint 6: validação e vídeo final.
+O FleetWise possui um dashboard desenvolvido com Streamlit para visualização dos custos, diagnósticos, benchmarks e recomendações.
+
+Para executar:
+
+```bash
+python -m streamlit run src/dashboard.py
+```
+
+Após a execução, acesse:
+
+```text
+http://localhost:8501
+```
+
+O usuário deve enviar um arquivo CSV da operação para iniciar a análise.
 
 ## 🎥 Vídeo demonstrativo
 
