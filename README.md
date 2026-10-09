@@ -377,7 +377,7 @@ python -m pytest tests/test_reports.py
 **Link do vídeo:**
 
 ```text
-[FleetWise - Inteligência de Custos para Gestão de Frotas | FIAP Challenge](https://youtu.be/8vaDVYo_XfM?si=dXBNiaqcyPlNY3Z5)
+https://youtu.be/8vaDVYo_XfM?si=dXBNiaqcyPlNY3Z5
 ```
 
 ---
