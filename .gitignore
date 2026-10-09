@@ -1,0 +1,26 @@
+# Ambiente virtual Python
+.venv/
+venv/
+env/
+ENV/
+
+# Cache Python
+__pycache__/
+*.py[cod]
+
+# Configurações da IDE
+.idea/
+.vscode/
+
+# Arquivos temporários
+*.log
+*.tmp
+
+# Variáveis e credenciais
+.env
+*.key
+*.pem
+
+# Dados processados
+data/processed/*
+!data/processed/.gitkeep
