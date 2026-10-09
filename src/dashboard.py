@@ -1,5 +1,5 @@
 import sys
-from io import BytesIO
+from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
@@ -33,6 +33,7 @@ from src.recommendations import (
     calculate_total_savings,
     create_recommendations,
 )
+from src.reports import gerar_relatorio_excel
 from src.validators import validate_data
 
 
@@ -41,6 +42,7 @@ st.set_page_config(
     page_icon="🚛",
     layout="wide",
 )
+
 
 with st.expander("Formato esperado dos arquivos"):
     st.markdown(
@@ -68,7 +70,26 @@ with st.expander("Formato esperado dos arquivos"):
     )
 
 
+def format_currency(value):
+    """
+    Exibe valores monetários no padrão brasileiro.
+    """
+
+    value = float(value or 0)
+
+    formatted = f"{value:,.2f}"
+    formatted = formatted.replace(",", "X")
+    formatted = formatted.replace(".", ",")
+    formatted = formatted.replace("X", ".")
+
+    return f"R$ {formatted}"
+
+
 def load_uploaded_data(uploaded_file):
+    """
+    Lê, padroniza e valida arquivos CSV ou XLSX enviados pelo usuário.
+    """
+
     file_name = uploaded_file.name.lower()
 
     try:
@@ -96,6 +117,7 @@ def load_uploaded_data(uploaded_file):
 
     try:
         data = standardize_data(data)
+
     except Exception as error:
         st.error(
             f"Erro ao padronizar os dados: {error}"
@@ -106,6 +128,7 @@ def load_uploaded_data(uploaded_file):
 
     if errors:
         st.error("O arquivo possui problemas:")
+
         for error in errors:
             st.error(error)
 
@@ -115,6 +138,10 @@ def load_uploaded_data(uploaded_file):
 
 
 def filter_data(data):
+    """
+    Aplica filtros de veículo, categoria e período na barra lateral.
+    """
+
     st.sidebar.header("Filtros")
 
     vehicles = sorted(
@@ -165,52 +192,84 @@ def filter_data(data):
 
 
 def dataframe_to_csv(data):
+    """
+    Converte um DataFrame em CSV compatível com Excel.
+    """
+
     return data.to_csv(
         index=False,
         encoding="utf-8-sig"
     )
 
 
-def show_kpis(data):
+def build_report_metrics(data):
+    """
+    Cria o dicionário de métricas utilizado no relatório executivo.
+    """
+
     total_cost = calculate_total_cost(data)
     total_vehicles = data["veiculo_id"].nunique()
     total_transactions = len(data)
 
-    if total_vehicles > 0:
-        average_cost = total_cost / total_vehicles
-    else:
-        average_cost = 0
+    average_cost = (
+        total_cost / total_vehicles
+        if total_vehicles > 0
+        else 0
+    )
+
+    return {
+        "custo_total": total_cost,
+        "total_veiculos": total_vehicles,
+        "total_transacoes": total_transactions,
+        "custo_medio_veiculo": average_cost,
+    }
+
+
+def show_kpis(data):
+    """
+    Exibe os quatro KPIs principais.
+    """
+
+    metrics = build_report_metrics(data)
 
     col1, col2, col3, col4 = st.columns(4)
 
     col1.metric(
         "Custo total",
-        f"R$ {total_cost:,.2f}"
+        format_currency(metrics["custo_total"])
     )
 
     col2.metric(
         "Veículos",
-        total_vehicles
+        metrics["total_veiculos"]
     )
 
     col3.metric(
         "Transações",
-        total_transactions
+        metrics["total_transacoes"]
     )
 
     col4.metric(
         "Custo médio por veículo",
-        f"R$ {average_cost:,.2f}"
+        format_currency(
+            metrics["custo_medio_veiculo"]
+        )
     )
 
 
 def show_cost_analysis(data):
+    """
+    Exibe custos e participação por categoria.
+    """
+
     st.subheader("Custos por categoria")
 
     category_costs = calculate_cost_by_category(data)
 
     if category_costs.empty:
-        st.warning("Não existem dados para os filtros selecionados.")
+        st.warning(
+            "Não existem dados para os filtros selecionados."
+        )
         return
 
     st.bar_chart(
@@ -227,12 +286,18 @@ def show_cost_analysis(data):
 
 
 def show_vehicle_analysis(data):
+    """
+    Exibe ranking de custos por veículo.
+    """
+
     st.subheader("Custos por veículo")
 
     vehicle_costs = calculate_cost_by_vehicle(data)
 
     if vehicle_costs.empty:
-        st.warning("Não existem dados para os filtros selecionados.")
+        st.warning(
+            "Não existem dados para os filtros selecionados."
+        )
         return
 
     st.bar_chart(
@@ -248,12 +313,16 @@ def show_vehicle_analysis(data):
     )
 
 
-def show_diagnostics(data):
-    st.subheader("Diagnóstico da frota")
+def show_diagnostics(
+    vehicle_diagnostics,
+    category_diagnostics,
+    expensive_transactions,
+):
+    """
+    Exibe diagnósticos e anomalias já calculados.
+    """
 
-    vehicle_diagnostics = calculate_vehicle_diagnostics(data)
-    category_diagnostics = calculate_category_diagnostics(data)
-    expensive_transactions = detect_expensive_transactions(data)
+    st.subheader("Diagnóstico da frota")
 
     tab1, tab2, tab3 = st.tabs([
         "Veículos",
@@ -292,16 +361,16 @@ def show_diagnostics(data):
             )
 
 
-def show_benchmarks(data):
+def show_benchmarks(
+    benchmark,
+    cost_per_km,
+    savings,
+):
+    """
+    Exibe benchmark de custo por quilômetro e economia estimada.
+    """
+
     st.subheader("Benchmark interno da frota")
-
-    if data.empty:
-        st.warning("Não existem dados para análise.")
-        return
-
-    benchmark = calculate_fleet_benchmark(data)
-    cost_per_km = calculate_cost_per_km(data)
-    savings = calculate_benchmark_savings(data)
 
     st.metric(
         "Custo médio por quilômetro",
@@ -323,21 +392,24 @@ def show_benchmarks(data):
     )
 
 
-def show_recommendations(data):
-    st.subheader("Plano de ação")
+def show_recommendations(
+    recommendations,
+    total_savings,
+):
+    """
+    Exibe o plano de ação e disponibiliza o download em CSV.
+    """
 
-    recommendations = create_recommendations(data)
-    total_savings = calculate_total_savings(
-        recommendations
-    )
+    st.subheader("Plano de ação")
 
     st.metric(
         "Economia potencial estimada",
-        f"R$ {total_savings:,.2f}"
+        format_currency(total_savings)
     )
 
     if recommendations.empty:
         st.info("Nenhuma recomendação foi gerada.")
+
     else:
         st.dataframe(
             recommendations,
@@ -346,15 +418,57 @@ def show_recommendations(data):
         )
 
         st.download_button(
-            label="Baixar plano de ação",
+            label="Baixar plano de ação em CSV",
             data=dataframe_to_csv(recommendations),
             file_name="plano_de_acao.csv",
-            mime="text/csv"
+            mime="text/csv",
+            use_container_width=True
         )
+
+
+def show_report_download(
+    data,
+    metrics,
+    anomalies,
+    benchmark_data,
+    recommendations,
+    total_savings,
+):
+    """
+    Gera o relatório FleetWise em memória e exibe botão de download.
+    """
+
+    st.subheader("Relatório executivo")
+
+    report_excel = gerar_relatorio_excel(
+        dados=data,
+        metricas=metrics,
+        anomalias=anomalies,
+        benchmark=benchmark_data,
+        recomendacoes=recommendations,
+        economia_potencial=total_savings,
+    )
+
+    file_name = (
+        "relatorio_fleetwise_"
+        f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    )
+
+    st.download_button(
+        label="Baixar relatório executivo em Excel",
+        data=report_excel,
+        file_name=file_name,
+        mime=(
+            "application/vnd.openxmlformats-officedocument."
+            "spreadsheetml.sheet"
+        ),
+        use_container_width=True
+    )
 
 
 def main():
     st.title("🚛 FleetWise")
+
     st.caption(
         "Inteligência de custos para gestão de frotas"
     )
@@ -391,21 +505,55 @@ def main():
         "após aplicação dos filtros."
     )
 
+    metrics = build_report_metrics(filtered_data)
+
+    vehicle_diagnostics = calculate_vehicle_diagnostics(
+        filtered_data
+    )
+
+    category_diagnostics = calculate_category_diagnostics(
+        filtered_data
+    )
+
+    expensive_transactions = detect_expensive_transactions(
+        filtered_data
+    )
+
+    benchmark = calculate_fleet_benchmark(filtered_data)
+
+    cost_per_km = calculate_cost_per_km(
+        filtered_data
+    )
+
+    benchmark_savings = calculate_benchmark_savings(
+        filtered_data
+    )
+
+    recommendations = create_recommendations(
+        filtered_data
+    )
+
+    total_savings = calculate_total_savings(
+        recommendations
+    )
+
     st.download_button(
-        label="Baixar dados filtrados",
+        label="Baixar dados filtrados em CSV",
         data=dataframe_to_csv(filtered_data),
         file_name="frota_filtrada.csv",
-        mime="text/csv"
+        mime="text/csv",
+        use_container_width=True
     )
 
     show_kpis(filtered_data)
 
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
         "Custos",
         "Veículos",
         "Diagnóstico",
         "Benchmarks",
         "Recomendações",
+        "Exportações",
     ])
 
     with tab1:
@@ -415,13 +563,34 @@ def main():
         show_vehicle_analysis(filtered_data)
 
     with tab3:
-        show_diagnostics(filtered_data)
+        show_diagnostics(
+            vehicle_diagnostics=vehicle_diagnostics,
+            category_diagnostics=category_diagnostics,
+            expensive_transactions=expensive_transactions,
+        )
 
     with tab4:
-        show_benchmarks(filtered_data)
+        show_benchmarks(
+            benchmark=benchmark,
+            cost_per_km=cost_per_km,
+            savings=benchmark_savings,
+        )
 
     with tab5:
-        show_recommendations(filtered_data)
+        show_recommendations(
+            recommendations=recommendations,
+            total_savings=total_savings,
+        )
+
+    with tab6:
+        show_report_download(
+            data=filtered_data,
+            metrics=metrics,
+            anomalies=expensive_transactions,
+            benchmark_data=cost_per_km,
+            recommendations=recommendations,
+            total_savings=total_savings,
+        )
 
 
 if __name__ == "__main__":
